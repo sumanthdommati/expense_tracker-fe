@@ -20,6 +20,7 @@ const AddExpense = () => {
     const dropdownRef = useRef(null);
     const categoryButtonRef = useRef(null);
 
+
     useEffect(() => {
         const fetchCategories = async () => {
             try {
