@@ -44,7 +44,7 @@ const GoalsPage = () => {
         const { name, value } = e.target;
         setFormData({
             ...formData,
-            [name]: ['targetAmount', 'currentAmount'].includes(name) ? parseFloat(value) || 0 : value
+            [name]: ['targetAmount', 'currentAmount'].includes(name) ? value === "" ? "" : parseFloat(value) : value
         });
     };
 
