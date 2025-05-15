@@ -12,7 +12,6 @@ import BudgetPage from './pages/BudgetPage';
 import axios from 'axios';
 import GoalsPage from './pages/GoalsPage';
 
-// Set default base URL for all axios requests
 axios.defaults.baseURL = 'http://localhost:7001/api';
 
 function App() {
