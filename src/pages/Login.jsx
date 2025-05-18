@@ -134,6 +134,13 @@ const Login = ({ onLogin }) => {
                                     Remember me
                                 </label>
                             </div>
+
+                            {/* Add Forgot Password link */}
+                            <div className="text-sm">
+                                <Link to="/request-reset" className="font-medium text-indigo-600 hover:text-indigo-500 transition-colors">
+                                    Forgot password?
+                                </Link>
+                            </div>
                         </div>
 
                         <div>

@@ -11,8 +11,11 @@ import Layout from './components/Layout';
 import BudgetPage from './pages/BudgetPage';
 import axios from 'axios';
 import GoalsPage from './pages/GoalsPage';
+// Fix the imports - ensure we're importing named exports
+import { RequestPasswordReset, ResetPassword } from './pages/PasswordReset';
 
-axios.defaults.baseURL = 'http://localhost:7001/api';
+// Set default base URL for all axios requests
+axios.defaults.baseURL = 'https://expensetracker-be-production.up.railway.app/api';
 
 function App() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -57,6 +60,8 @@ function App() {
                 <Route path="/register" element={
                     isAuthenticated ? <Navigate to="/" /> : <Register onLogin={login} />
                 } />
+                <Route path="/request-reset" element={<RequestPasswordReset />} />
+                <Route path="/reset-password/:uid/:token" element={<ResetPassword onLogin={login} />} />
 
                 {/* Protected routes */}
                 <Route path="/" element={
