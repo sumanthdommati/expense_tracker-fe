@@ -65,13 +65,18 @@ const ChatWindow = ({ isOpen, onClose }) => {
         try {
             const response = await processQuery(input);
 
+            // Format response if it contains bullet points (•)
+            const formattedResponse = response.includes('•')
+                ? formatBulletPoints(response)
+                : response;
+
             // Add bot response
             setTimeout(() => {
                 setMessages(prev => [
                     ...prev,
                     {
                         id: (Date.now() + 1).toString(),
-                        text: response,
+                        text: formattedResponse,
                         isUser: false,
                         timestamp: new Date()
                     }
@@ -90,6 +95,25 @@ const ChatWindow = ({ isOpen, onClose }) => {
             ]);
             setIsLoading(false);
         }
+    };
+
+    // Function to format bullet points from backend
+    const formatBulletPoints = (text) => {
+        // Split text by bullet points
+        const parts = text.split('•');
+
+        // First part is intro text (before any bullets)
+        const introText = parts[0].trim();
+
+        // Rest are bullet points
+        const bullets = parts.slice(1).map(item => item.trim());
+
+        // Return JSX-compatible format with line breaks
+        return {
+            type: 'formatted',
+            intro: introText,
+            bullets: bullets
+        };
     };
 
     const handleSuggestionClick = (suggestion) => {
