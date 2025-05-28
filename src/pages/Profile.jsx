@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { User } from 'lucide-react';
+import { User, Pencil } from 'lucide-react';
 
 const Profile = () => {
     const [profile, setProfile] = useState(null);
@@ -8,8 +8,10 @@ const Profile = () => {
     const [error, setError] = useState(null);
     const [expenseCount, setExpenseCount] = useState(0);
     const [categoryCount, setCategoryCount] = useState(0);
-
-    // Password change states
+    const [showUsernameModal, setShowUsernameModal] = useState(false);
+    const [newUsername, setNewUsername] = useState('');
+    const [usernameError, setUsernameError] = useState(null);
+    const [usernameSuccess, setUsernameSuccess] = useState(false);
     const [showPasswordModal, setShowPasswordModal] = useState(false);
     const [currentPassword, setCurrentPassword] = useState('');
     const [newPassword, setNewPassword] = useState('');
@@ -17,7 +19,6 @@ const Profile = () => {
     const [passwordError, setPasswordError] = useState(null);
     const [passwordSuccess, setPasswordSuccess] = useState(false);
 
-    // Email update states
     const [showEmailModal, setShowEmailModal] = useState(false);
     const [newEmail, setNewEmail] = useState('');
     const [emailError, setEmailError] = useState(null);
@@ -32,7 +33,6 @@ const Profile = () => {
                     axios.get('/expenses/'),
                     axios.get('/categories/')
                 ]);
-
                 setProfile(profileRes.data);
                 setExpenseCount(expensesRes.data.length);
                 setCategoryCount(categoriesRes.data.length);
@@ -43,7 +43,6 @@ const Profile = () => {
                 setLoading(false);
             }
         };
-
         fetchUserData();
     }, []);
 
@@ -63,7 +62,6 @@ const Profile = () => {
                 new_password: newPassword
             });
 
-            // Update token
             localStorage.setItem('token', response.data.token);
             axios.defaults.headers.common['Authorization'] = `Token ${response.data.token}`;
 
@@ -72,7 +70,6 @@ const Profile = () => {
             setNewPassword('');
             setConfirmPassword('');
 
-            // Close modal after success
             setTimeout(() => {
                 setShowPasswordModal(false);
                 setPasswordSuccess(false);
@@ -82,6 +79,36 @@ const Profile = () => {
             setPasswordError(err.response?.data?.error || 'Failed to change password');
         }
     };
+
+    const handleUsernameUpdate = async (e) => {
+        e.preventDefault();
+        setUsernameError(null);
+        setUsernameSuccess(false);
+
+        try {
+            const response = await axios.post("/auth/update-username/", {
+                new_username: newUsername
+            });
+
+            localStorage.setItem("token", response.data.token);
+            axios.defaults.headers.common["Authorization"] = `Token ${response.data.token}`;
+
+            setUsernameSuccess(true);
+            setNewUsername('');
+
+            const profileRes = await axios.get("/auth/profile/");
+            setProfile(profileRes.data);
+
+            setTimeout(() => {
+                setShowUsernameModal(false);
+                setUsernameSuccess(false);
+            }, 2000);
+        } catch (err) {
+            console.error('Error updating username:', err);
+            setUsernameError(err.response?.data?.error || "Failed to update username");
+        }
+    };
+
 
     const handleEmailUpdate = async (e) => {
         e.preventDefault();
@@ -99,11 +126,9 @@ const Profile = () => {
             setEmailSuccess(true);
             setNewEmail('');
 
-            // Update profile data with the new email
             const profileRes = await axios.get("/auth/profile/");
             setProfile(profileRes.data);
 
-            // Close modal after success
             setTimeout(() => {
                 setShowEmailModal(false);
                 setEmailSuccess(false);
@@ -154,17 +179,31 @@ const Profile = () => {
                         <div className="space-y-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-600">Username</label>
-                                <div className="mt-1 text-lg font-semibold text-gray-900">{profile.username}</div>
+                                <div className="mt-1 flex items-center space-x-2">
+                                    <span className="text-lg font-semibold text-gray-900">{profile.username}</span>
+                                    <button
+                                        onClick={() => setShowUsernameModal(true)}
+                                        className="text-gray-500 hover:text-gray-700"
+                                        aria-label="Edit Username"
+                                    >
+                                        <Pencil className="w-5 h-5" />
+                                    </button>
+                                </div>
                             </div>
+
+
                             <div>
                                 <label className="block text-sm font-medium text-gray-600">Email</label>
-                                <div className="mt-1 text-lg font-semibold text-gray-900">{profile.email}</div>
-                                <button
-                                    onClick={() => setShowEmailModal(true)}
-                                    className="mt-1 px-2 py-1 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-lg shadow-lg hover:from-purple-600 hover:to-indigo-600 transition duration-300"
-                                >
-                                    Change Email
-                                </button>
+                                <div className="mt-1 flex items-center space-x-2">
+                                    <span className="text-lg font-semibold text-gray-900">{profile.email}</span>
+                                    <button
+                                        onClick={() => setShowEmailModal(true)}
+                                        className="text-gray-500 hover:text-gray-700"
+                                        aria-label="Edit Email"
+                                    >
+                                        <Pencil className="w-5 h-5" />
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
@@ -217,24 +256,21 @@ const Profile = () => {
                 </div>
             </div>
 
-            {/* Email Update Modal */}
+            {/* Email Modal */}
             {showEmailModal && (
                 <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center">
                     <div className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
                         <h2 className="text-xl font-semibold text-gray-900 mb-4">Update Email</h2>
-
                         {emailError && (
                             <div className="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
                                 {emailError}
                             </div>
                         )}
-
                         {emailSuccess && (
                             <div className="mb-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
                                 Email updated successfully!
                             </div>
                         )}
-
                         <form onSubmit={handleEmailUpdate} className="space-y-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700">New Email</label>
@@ -246,7 +282,6 @@ const Profile = () => {
                                     required
                                 />
                             </div>
-
                             <div className="flex justify-end space-x-3 mt-6">
                                 <button
                                     type="button"
@@ -272,24 +307,72 @@ const Profile = () => {
                 </div>
             )}
 
-            {/* Password Change Modal */}
+            {showUsernameModal && (
+                <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center">
+                    <div className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
+                        <h2 className="text-xl font-semibold text-gray-900 mb-4">Update Username</h2>
+                        {usernameError && (
+                            <div className="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+                                {usernameError}
+                            </div>
+                        )}
+                        {usernameSuccess && (
+                            <div className="mb-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
+                                Username updated successfully!
+                            </div>
+                        )}
+                        <form onSubmit={handleUsernameUpdate} className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700">New Username</label>
+                                <input
+                                    type="text"
+                                    value={newUsername}
+                                    onChange={(e) => setNewUsername(e.target.value)}
+                                    className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-2 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm outline-none"
+                                    required
+                                />
+                            </div>
+                            <div className="flex justify-end space-x-3 mt-6">
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setShowUsernameModal(false);
+                                        setUsernameError(null);
+                                        setUsernameSuccess(false);
+                                        setNewUsername('');
+                                    }}
+                                    className="bg-gray-200 text-gray-700 px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-300"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="bg-indigo-800 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium"
+                                >
+                                    Update Username
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+
+            {/* Password Modal */}
             {showPasswordModal && (
                 <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center">
                     <div className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
                         <h2 className="text-xl font-semibold text-gray-900 mb-4">Change Password</h2>
-
                         {passwordError && (
                             <div className="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
                                 {passwordError}
                             </div>
                         )}
-
                         {passwordSuccess && (
                             <div className="mb-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
                                 Password changed successfully!
                             </div>
                         )}
-
                         <form onSubmit={handlePasswordChange} className="space-y-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700">Current Password</label>
@@ -301,7 +384,6 @@ const Profile = () => {
                                     required
                                 />
                             </div>
-
                             <div>
                                 <label className="block text-sm font-medium text-gray-700">New Password</label>
                                 <input
@@ -312,7 +394,6 @@ const Profile = () => {
                                     required
                                 />
                             </div>
-
                             <div>
                                 <label className="block text-sm font-medium text-gray-700">Confirm New Password</label>
                                 <input
@@ -323,7 +404,6 @@ const Profile = () => {
                                     required
                                 />
                             </div>
-
                             <div className="flex justify-end space-x-3 mt-6">
                                 <button
                                     type="button"
